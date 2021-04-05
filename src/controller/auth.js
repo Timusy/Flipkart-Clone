@@ -1,7 +1,10 @@
 const User=require("../models/user");
 const jwt=require("jsonwebtoken");
+const {validationResult}=require("express-validator");
+
 
 exports.signup=function(req,res){
+
   User.findOne({email: req.body.email}).exec(function(error,user){
     if(user){
       return res.status(404).json({mesaage: "User already exists!"});
