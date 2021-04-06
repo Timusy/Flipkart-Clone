@@ -8,6 +8,8 @@ const env=require("dotenv")
 const userRoutes=require("./routes/user");
 const adminRoutes=require("./routes/admin/user");
 const categoryRoutes=require("./routes/category");
+const productRoutes=require("./routes/product");
+
 const app = express();
 env.config();
 
@@ -21,6 +23,8 @@ mongoose.connect(`mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO
    //every route will be prefixed with api and call to userRoutes is made
   app.use('/api',adminRoutes);
   app.use("/api",categoryRoutes);
+  app.use("/api",productRoutes);
+
 
 
 //Used backtick for converting string to json i.e interpolation of string
