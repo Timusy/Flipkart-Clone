@@ -47,7 +47,7 @@ User.findOne({email:req.body.email}).exec(function(error,user){
 
 
           console.log("Hello");
-        const token=jwt.sign({_id:user._id},process.env.JWT_SECRETKEY,{expiresIn:'1h'});
+        const token=jwt.sign({_id:user._id,role:user.role},process.env.JWT_SECRETKEY,{expiresIn:'1h'});
         const {_id,firstName,lastName,email,role,fullName}=user;
         return res.status(200).json({
           token,
