@@ -5,6 +5,8 @@ const _ = require("lodash");
 const mongoose=require("mongoose");
 const env=require("dotenv");
 const path=require("path");
+const cors=require("cors");
+
 //importing user route from routes folder
 const userRoutes=require("./routes/user");
 const adminRoutes=require("./routes/admin/user");
@@ -14,7 +16,7 @@ const cartRoutes=require("./routes/cart");
 
 const app = express();
 env.config();
-
+app.use(cors());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
