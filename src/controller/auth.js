@@ -1,7 +1,7 @@
 const User=require("../models/user");
 const jwt=require("jsonwebtoken");
 const {validationResult}=require("express-validator");
-const bcrypt=require("bcrypt");
+const bcrypt=require("bcryptjs");
 const shortid = require("shortid");
 
 const generateJwtToken = (_id, role) => {

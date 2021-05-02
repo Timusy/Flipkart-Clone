@@ -1,6 +1,6 @@
 const User=require("../../models/user");
 const jwt=require("jsonwebtoken");
-const bcrypt=require("bcrypt");
+const bcrypt=require("bcryptjs");
 
 exports.signup=function(req,res){
   User.findOne({email: req.body.email}).exec(async function(error,user){
