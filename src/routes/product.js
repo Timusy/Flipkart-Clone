@@ -1,7 +1,8 @@
 const express = require("express");
 const router=express.Router();
  //removes spaces with -
-const {createProduct}=require("../controller/product");
+const {createProduct,getProductBySlug, getProductDetailsById, deleteProductById,
+  getProducts,}=require("../controller/product");
 const {requireSignin,adminMiddleware}=require("../common-middleware");
 const multer  = require('multer'); //for receiving form data and uploading the data
 const shortid=require("shortid");
@@ -21,6 +22,20 @@ const upload=multer({storage});
 
 //upload.single me we are uploading a single file of productPicture
 router.post("/product/create",requireSignin,adminMiddleware,upload.array("productPicture"),createProduct);
+router.get("/products/:slug",getProductBySlug);
+router.get("/product/:productId", getProductDetailsById);
+router.delete(
+  "/product/deleteProductById",
+  requireSignin,
+  adminMiddleware,
+  deleteProductById
+);
+router.post(
+  "/product/getProducts",
+  requireSignin,
+  adminMiddleware,
+  getProducts
+);
 
 //router.get("/category/getCategories",getCategories);
 

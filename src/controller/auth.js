@@ -1,23 +1,32 @@
 const User=require("../models/user");
 const jwt=require("jsonwebtoken");
 const {validationResult}=require("express-validator");
+const bcrypt=require("bcrypt");
+const shortid = require("shortid");
 
+const generateJwtToken = (_id, role) => {
+  return jwt.sign({ _id, role }, process.env.JWT_SECRET, {
+    expiresIn: "100d",
+  });
+};
 
 exports.signup=function(req,res){
 
-  User.findOne({email: req.body.email}).exec(function(error,user){
+  User.findOne({email: req.body.email}).exec(async function(error,user){
     if(user){
       return res.status(404).json({mesaage: "User already exists!"});
     }
     else{
-    //  const { firstName, lastName, email, password } = req.body;
-      const newUser=new User({
-        firstName:req.body.firstName,
-        lastName:req.body.lastName,
+     const { firstName, lastName, email, password } = req.body;
+     const hash_password=await bcrypt.hash(password,10);
 
-        email:req.body.email,
-        password:req.body.password,
-        userName:req.body.userName
+      const newUser=new User({
+        firstName,
+        lastName,
+
+        email,
+        hash_password,
+        userName:shortid.generate()
 
       });
 
@@ -25,10 +34,14 @@ exports.signup=function(req,res){
         if(err){
           return res.status(404).json({mesaage: "Something went wrong!"});
         }
-        if(data){
-           return res.status(201).json({message: "User created Successfully"});
-            //return res.status(201).json({user:data});
-        }
+        if (data) {
+      // const token = generateJwtToken(data._id, data.role);
+       const { _id, firstName, lastName, email, role, fullName } = data;
+       return res.status(201).json({
+
+         user: { _id, firstName, lastName, email, role, fullName },
+       });
+     }
       });
     }
   });
@@ -36,18 +49,18 @@ exports.signup=function(req,res){
 
 
 exports.signin=function(req,res){
-User.findOne({email:req.body.email}).exec(function(error,user){
+User.findOne({email:req.body.email}).exec(async function(error,user){
     if(error){
       return res.status(400).json({error});
       console.log("Error");
     }
     if(user){
-
-      if(user.authenticate(req.body.password)) {
+        const isPassword= await user.authenticate(req.body.password);
+      if(isPassword &&user.role==="user") {
 
 
           console.log("Hello");
-        const token=jwt.sign({_id:user._id,role:user.role},process.env.JWT_SECRETKEY,{expiresIn:'1h'});
+        const token=jwt.sign({_id:user._id,role:user.role},process.env.JWT_SECRETKEY,{expiresIn:'100d'});
         const {_id,firstName,lastName,email,role,fullName}=user;
         return res.status(200).json({
           token,

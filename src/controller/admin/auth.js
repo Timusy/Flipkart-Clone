@@ -1,19 +1,27 @@
 const User=require("../../models/user");
 const jwt=require("jsonwebtoken");
+const bcrypt=require("bcrypt");
 
 exports.signup=function(req,res){
-  User.findOne({email: req.body.email}).exec(function(error,user){
+  User.findOne({email: req.body.email}).exec(async function(error,user){
     if(user){
       return res.status(404).json({mesaage: "Admin already exists!"});
     }
-    else{
-    //  const { firstName, lastName, email, password } = req.body;
-      const newUser=new User({
-        firstName:req.body.firstName,
-        lastName:req.body.lastName,
 
-        email:req.body.email,
-        password:req.body.password,
+
+    else{
+      const {
+        firstName,
+        lastName,
+        email,
+        password
+      } = req.body;
+      const hash_password=await bcrypt.hash(password,10);
+      const newUser=new User({
+        firstName,
+        lastName,
+        email,
+        hash_password,
         userName:req.body.userName,
         role: "admin"
 
@@ -34,20 +42,21 @@ exports.signup=function(req,res){
 
 
 exports.signin=function(req,res){
-User.findOne({email:req.body.email}).exec(function(error,user){
+User.findOne({email:req.body.email}).exec(async function(error,user){
     if(error){
       return res.status(400).json({error});
       console.log("Error");
     }
     if(user){
+        const isPassword= await user.authenticate(req.body.password);
+        //console.log({isPassword});
+      if(isPassword && user.role==="admin") {
 
-      if(user.authenticate(req.body.password) && user.role==="admin") {
 
-
-          console.log("Hello");
-        const token=jwt.sign({_id:user._id, role:user.role},process.env.JWT_SECRETKEY,{expiresIn:'1h'});
+        //  console.log("Hello");
+        const token=jwt.sign({_id:user._id, role:user.role},process.env.JWT_SECRETKEY,{expiresIn:'100d'});
         const {_id,firstName,lastName,email,role,fullName}=user;
-        res.cookie("token",token,{expiresIn:"1h"});
+        res.cookie("token",token,{expiresIn:"100d"});
         return res.status(200).json({
           token,
           user:{_id,firstName,lastName,email,role,fullName}
