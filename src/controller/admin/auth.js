@@ -1,6 +1,10 @@
 const User=require("../../models/user");
 const jwt=require("jsonwebtoken");
-const bcrypt=require("bcryptjs");
+const bcrypt=require("bcrypt");
+const env=require("dotenv");
+const shortid = require("shortid");
+
+env.config();
 
 exports.signup=function(req,res){
   User.findOne({email: req.body.email}).exec(async function(error,user){
@@ -22,7 +26,7 @@ exports.signup=function(req,res){
         lastName,
         email,
         hash_password,
-        userName:req.body.userName,
+        userName:shortid.generate(),
         role: "admin"
 
       });
@@ -32,7 +36,12 @@ exports.signup=function(req,res){
           return res.status(404).json({mesaage: "Something went wrong!"});
         }
         if(data){
-           return res.status(201).json({message: "Admin created Successfully"});
+          const { _id, firstName, lastName, email, role, fullName } = data;
+           return res.status(201).json({
+             message: "Admin created Successfully",
+             user: { _id, firstName, lastName, email, role, fullName }
+
+            });
             //return res.status(201).json({user:data});
         }
       });
@@ -45,7 +54,7 @@ exports.signin=function(req,res){
 User.findOne({email:req.body.email}).exec(async function(error,user){
     if(error){
       return res.status(400).json({error});
-      console.log("Error");
+     // console.log("Error");
     }
     if(user){
         const isPassword= await user.authenticate(req.body.password);
@@ -80,11 +89,47 @@ exports.signout=function(req,res){
    res.status(200).json({message:"Signout Successfull"});
 }
 
-exports.requireSignin=function(req,res,next){
-  const token=req.headers.authorization.split(" ")[1];
-  const user=jwt.verify(token,process.env.JWT_SECRETKEY);
+exports.requireSignin = function (req, res, next) {
+  
+  const token = req.headers.authorization.split(" ")[1];
+  try{
+  const user = jwt.verify(token, process.env.JWT_SECRETKEY);
   //console.log(token);
-  req.user=user;
+  req.user = user;
   next();
+  }
+  catch(err){  
+
+  
+    return res.status(404).json({
+      error:err,
+      message:"User not found"
+    });
+  };
+
   //this allows the next call ie status to run in profile router
+}
+
+exports.profile = async function (req, res) {
+
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    return res.json({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      fullname: user.fullName,
+      email: user.email,
+      userName: user.userName
+
+    });
+  }
+  else {
+    return res.status(404), json(
+      { mesaage: "User not found" }
+    );
+
+  }
+
 }
